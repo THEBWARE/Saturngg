@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturn.gg - The Ultimate Roblox Executor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="https://saturn-gg.vercel.app/Screenshot.png" type="image/png">
+    <style>
+        :root {
+            --primary-color: #6a00ff;
+            --secondary-color: #00d4ff;
+            --accent-color: #ff00aa;
+            --dark-bg: #0a0a1a;
+            --darker-bg: #050510;
+            --card-bg: rgba(30, 30, 60, 0.7);
+            --text-color: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            color: var(--text-color);
+            font-family: 'Roboto', sans-serif;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: linear-gradient(to bottom, var(--darker-bg), var(--dark-bg));
+        }
+
+        .audio-player {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .audio-toggle {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(106, 0, 255, 0.5);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .audio-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(106, 0, 255, 0.7);
+        }
+
+        .music-icon {
+            font-size: 24px;
+        }
+
+        .cyber-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -2;
+            opacity: 0.5;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, 
+                rgba(106, 0, 255, 0.2) 0%, 
+                rgba(0, 212, 255, 0.1) 100%);
+            z-index: -1;
+        }
+
+        body {
+            background-color: transparent;
+            text-align: center;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            position: relative;
+        }
+
+        .logo-container {
+            position: relative;
+            margin: 30px auto;
+            width: 180px;
+            height: 180px;
+        }
+
+        .logo {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 15px rgba(106, 0, 255, 0.7));
+            transition: all 0.5s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(106, 0, 255, 0.8), transparent 70%);
+            border-radius: 50%;
+            animation: pulse 3s infinite alternate;
+            z-index: 0;
+        }
+
+        .logo:hover {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin: 20px 0;
+            background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: rgba(0, 212, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.6em;
+            margin-left: 10px;
+            vertical-align: middle;
+            border: 1px solid var(--secondary-color);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 320px;
+            transition: all 0.4s ease;
+            position: relative;
+            border: 1px solid rgba(106, 0, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px rgba(106, 0, 255, 0.4);
+            border-color: var(--secondary-color);
+        }
+
+        .premium {
+            border: 1px solid rgba(255, 0, 170, 0.3);
+        }
+
+        .premium:hover {
+            border-color: var(--accent-color);
+        }
+
+        .premium-badge {
+            position: absolute;
+            top: -15px;
+            right: -15px;
+            background: linear-gradient(45deg, var(--accent-color), #ff0066);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(255, 0, 170, 0.3);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 14px 35px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .button:hover::after {
+            transform: translateX(100%);
+        }
+
+        .download {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 20px rgba(106, 0, 255, 0.4);
+        }
+
+        .download:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+        }
+
+        .premium-btn {
+            background: linear-gradient(45deg, var(--accent-color), #ff0066);
+            opacity: 0.9;
+            cursor: not-allowed;
+        }
+
+        .features {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            margin: 25px 0;
+        }
+
+        .features li {
+            margin: 12px 0;
+            padding-left: 25px;
+            position: relative;
+            color: var(--text-muted);
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .detection-rate {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .info-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 50px 0;
+            flex-wrap: wrap;
+        }
+
+        .info-card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 450px;
+            transition: all 0.4s ease;
+            border: 1px solid rgba(106, 0, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(106, 0, 255, 0.4);
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            margin: 25px 0;
+        }
+
+        .info-list li {
+            margin: 18px 0;
+            padding-left: 35px;
+            position: relative;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+
+        .info-list li:before {
+            content: "➤";
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .credits-section {
+            margin: 50px 0;
+        }
+
+        .credits-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .credit-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(106, 0, 255, 0.3);
+            width: 220px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .credit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(106, 0, 255, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .credit-avatar {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 0 20px rgba(106, 0, 255, 0.5);
+        }
+
+        .credit-card h3 {
+            margin-bottom: 5px;
+            color: var(--secondary-color);
+        }
+
+        .credit-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(106, 0, 255, 0.2);
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border: 1px solid rgba(106, 0, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .footer:hover {
+            background: rgba(106, 0, 255, 0.3);
+            box-shadow: 0 6px 25px rgba(106, 0, 255, 0.4);
+        }
+
+        .discord-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .discord-link:hover {
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .discord-icon {
+            font-size: 20px;
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+
+        .scale-up {
+            animation: scaleUp 0.7s ease-out;
+        }
+
+        .slide-in {
+            animation: slideIn 0.7s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Glow effects */
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px rgba(0, 212, 255, 0.5);
+            }
+            to {
+                text-shadow: 0 0 15px rgba(0, 212, 255, 0.8), 0 0 20px rgba(106, 0, 255, 0.6);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.1);
+                opacity: 0.4;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+            
+            .button-container, .info-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 25px;
+            }
+            
+            .card, .info-card {
+                width: 90%;
+            }
+            
+            .footer {
+                width: 90%;
+                text-align: center;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .logo-container {
+                width: 150px;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="rainCanvas"></canvas>
+    
+    <div class="audio-player">
+        <audio id="lofi" loop>
+            <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3" type="audio/mp3">
+        </audio>
+        <button id="audioToggle" class="audio-toggle">
+            <span class="music-icon">🎵</span>
+        </button>
+    </div>
+
+    <div class="cyber-background"></div>
+    <div class="background-overlay"></div>
+    
+    <div class="main-container">
+        <div class="content-wrapper">
+            <div class="logo-container">
+                <div class="logo-glow"></div>
+                <img src="https://saturn-gg.vercel.app/Screenshot.png" alt="Saturn.gg Logo" class="logo fade-in">
+            </div>
+            <h1 class="fade-in">Saturn.gg <span class="version-badge">v1.0.8</span></h1>
+
+            <div class="button-container">
+                <div class="card scale-up">
+                    <h2>Free Version</h2>
+                    <ul class="features">
+                        <li>Advanced Script Execution</li>
+                        <li>Built-in Script Hub</li>
+                        <li>Regular Updates</li>
+                        <li>Basic UI Customization</li>
+                        <li>Community Support</li>
+                    </ul>
+                    <button class="button download" onclick="window.location.href='https://github.com/youtubecudafn/SaturnSetup/raw/refs/heads/main/SaturnStrapper.zip'">Download Free</button>
+                    <div class="detection-rate">96% Undetected Rate</div>
+                </div>
+
+                <div class="card scale-up premium">
+                    <div class="premium-badge">Best Option!</div>
+                    <h2>Premium Version</h2>
+                    <ul class="features">
+                        <li>All Free Features Plus:</li>
+                        <li>Priority Script Execution</li>
+                        <li>Exclusive Scripts</li>
+                        <li>Premium Support</li>
+                        <li>Advanced UI Customization</li>
+                        <li>Early Access Features</li>
+                    </ul>
+                    <button class="button premium-btn">Coming Soon</button>
+                    <div class="detection-rate">100% Undetected Rate</div>
+                </div>
+            </div>
+
+            <div class="info-container">
+                <div class="info-card scale-up">
+                    <h2>Why Choose Saturn.gg?</h2>
+                    <ul class="info-list">
+                        <li>Lightning-fast script execution with minimal latency</li>
+                        <li>Regular updates to bypass the latest anti-cheat measures</li>
+                        <li>Intuitive interface designed for both beginners and experts</li>
+                        <li>Active community with thousands of supported scripts</li>
+                        <li>Secure and reliable with built-in protection systems</li>
+                    </ul>
+                </div>
+
+                <div class="info-card scale-up">
+                    <h2>Industry-Leading Technology</h2>
+                    <ul class="info-list">
+                        <li>Proprietary injection methods for maximum stealth</li>
+                        <li>Advanced memory manipulation techniques</li>
+                        <li>Real-time detection avoidance systems</li>
+                        <li>Optimized for performance with minimal resource usage</li>
+                        <li>Continuous innovation to stay ahead of the competition</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-content">
+            <div class="credits-section scale-up">
+                <h2 class="glow">The Development Team</h2>
+                <div class="credits-container">
+                    <div class="credit-card">
+                        <div class="credit-avatar">CF</div>
+                        <h3>CudaFn</h3>
+                        <p>Lead Developer</p>
+                    </div>
+                    <div class="credit-card">
+                        <div class="credit-avatar">JV</div>
+                        <h3>JuiceVZN</h3>
+                        <p>API Architect</p>
+                    </div>
+                    <div class="credit-card">
+                        <div class="credit-avatar">DJ</div>
+                        <h3>Djatlasv</h3>
+                        <p>Bootstrapper Engineer</p>
+                    </div>
+                    <div class="credit-card">
+                        <div class="credit-avatar">TBD</div>
+                        <h3>TheBestDragon</h3>
+                        <p>API Developer</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer slide-in">
+                <a href="https://discord.gg/SaturnGG" target="_blank" class="discord-link">
+                    <span class="discord-icon">🎮</span> Join our Discord for updates and support!
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const raindrops = [];
+        const maxDrops = 200;
+
+        class Raindrop {
+            constructor() {
+                this.reset();
+                this.opacity = 0.1 + Math.random() * 0.3;
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * -canvas.height;
+                this.speed = 15 + Math.random() * 15;
+                this.length = 20 + Math.random() * 40;
+                this.width = 0.5 + Math.random() * 1.5;
+            }
+
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.reset();
+                    this.y = -10;
+                }
+            }
+
+            draw() {
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.length);
+                gradient.addColorStop(0, `rgba(106, 0, 255, ${this.opacity})`);
+                gradient.addColorStop(1, `rgba(0, 212, 255, ${this.opacity})`);
+                
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x, this.y + this.length);
+                ctx.strokeStyle = gradient;
+                ctx.lineWidth = this.width;
+                ctx.stroke();
+            }
+        }
+
+        for (let i = 0; i < maxDrops; i++) {
+            raindrops.push(new Raindrop());
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 5, 16, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            raindrops.forEach(drop => {
+                drop.update();
+                drop.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Audio Controls
+        const audio = document.getElementById('lofi');
+        const audioToggle = document.getElementById('audioToggle');
+        let isPlaying = false;
+
+        // Try to autoplay (may be blocked by browser)
+        const playAudio = () => {
+            audio.play().then(() => {
+                isPlaying = true;
+                audioToggle.style.opacity = '1';
+            }).catch(error => {
+                console.log('Autoplay prevented:', error);
+                isPlaying = false;
+                audioToggle.style.opacity = '0.7';
+            });
+        };
+
+        // Try to autoplay on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            audio.volume = 0.3;
+            playAudio();
+        });
+
+        audioToggle.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                audioToggle.style.opacity = '0.7';
+            } else {
+                playAudio();
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // Add hover effects to all cards
+        document.querySelectorAll('.card, .info-card, .credit-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = card.classList.contains('card') ? 'translateY(-10px)' : 'translateY(-5px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Add click effect to buttons
+        document.querySelectorAll('.button').forEach(button => {
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
