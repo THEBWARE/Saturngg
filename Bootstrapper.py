@@ -8,7 +8,7 @@ def display_ascii_art():
     # ANSI escape code to reset text color to default
     reset_color = "\033[0m"
 
-    ascii_art = r"""
+    ascii_art = """
 ____  ____  _   _ __  ____        ___    ____  _____ 
 |  _ \|  _ \| | | |  \/  \ \      / / \  |  _ \| ____|
 | | | | |_) | | | | |\/| |\ \ /\ / / _ \ | |_) |  _|  
