@@ -2,7 +2,7 @@ import requests
 import os
 import zipfile
 
-def display_ascii_art():  # This is the correct function name
+def display_ascii_art():  # Note: Two 'i's in "ascii"
     # ANSI escape code for blue text
     blue_color = "\033[94m"
     # ANSI escape code to reset text color to default
@@ -23,7 +23,7 @@ def download_file(url, filename):
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(filename, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
+            for chunk in r.iter_content(chunk_size=8192): 
                 f.write(chunk)
     print(f"Step 2: {filename} downloaded successfully.")
 
@@ -34,12 +34,11 @@ def unzip_file(filename, extract_to):
     print(f"Step 4: {filename} unzipped successfully.")
 
 def main():
-    display_ascii_art()  # This now matches the defined function name
+    display_ascii_art()  # Must match the defined name exactly
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Source/Saturn.zip"
     zip_filename = "Saturn.zip"
     extract_to = "Saturn"
 
-    # Ensure the directory exists
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
 
