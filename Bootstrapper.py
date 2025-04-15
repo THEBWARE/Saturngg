@@ -2,7 +2,7 @@ import requests
 import os
 import zipfile
 
-def display_ascii_art():
+def display_ascii_art():  # This is the correct function name
     # ANSI escape code for blue text
     blue_color = "\033[94m"
     # ANSI escape code to reset text color to default
@@ -34,7 +34,7 @@ def unzip_file(filename, extract_to):
     print(f"Step 4: {filename} unzipped successfully.")
 
 def main():
-    display_ascii_art()  # Fixed: Correct function name
+    display_ascii_art()  # This now matches the defined function name
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Source/Saturn.zip"
     zip_filename = "Saturn.zip"
     extract_to = "Saturn"
