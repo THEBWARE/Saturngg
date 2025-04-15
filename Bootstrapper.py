@@ -32,7 +32,6 @@ def unzip_file(filename, extract_to):
     print(f"Step 4: {filename} unzipped successfully.")
 
 def main():
-    display_ascii_art()  # 👈 Llamada válida, porque la función ya está definida arriba
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Source/Saturn.zip"
     zip_filename = "Saturn.zip"
     extract_to = "Saturn"
