@@ -3,9 +3,7 @@ import os
 import zipfile
 
 def display_ascii_art():
-    # ANSI escape code for blue text
     blue_color = "\033[94m"
-    # ANSI escape code to reset text color to default
     reset_color = "\033[0m"
 
     ascii_art = r"""
@@ -34,12 +32,11 @@ def unzip_file(filename, extract_to):
     print(f"Step 4: {filename} unzipped successfully.")
 
 def main():
-    display_ascii_art()
+    display_ascii_art()  # 👈 Llamada válida, porque la función ya está definida arriba
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Source/Saturn.zip"
     zip_filename = "Saturn.zip"
     extract_to = "Saturn"
 
-    # Ensure the directory exists
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
 
