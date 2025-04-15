@@ -8,13 +8,13 @@ def display_ascii_art():
     # ANSI escape code to reset text color to default
     reset_color = "\033[0m"
 
-    ascii_art = """
- ____        _                                 
-/ ___|  __ _| |_ _   _ _ __ _ __    __ _  __ _ 
-\___ \ / _` | __| | | | '__| '_ \  / _` |/ _` |
- ___) | (_| | |_| |_| | |  | | | || (_| | (_| |
-|____/ \__,_|\__|\__,_|_|  |_| |_(_)__, |\__, |
-                                   |___/ |___/ 
+    ascii_art = r"""
+  ____        _                                 
+ / ___|  __ _| |_ _   _ _ __ _ __    __ _  __ _ 
+ \___ \ / _` | __| | | | '__| '_ \  / _` |/ _` |
+  ___) | (_| | |_| |_| | |  | | | || (_| | (_| |
+ |____/ \__,_|\__|\__,_|_|  |_| |_(_)__, |\__, |
+                                    |___/ |___/ 
     """
     print(f"{blue_color}{ascii_art}{reset_color}")
 
@@ -37,7 +37,7 @@ def main():
     display_ascii_art()
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Source/Saturn.zip"
     zip_filename = "Saturn.zip"
-    extract_to = "Saturn.zip"
+    extract_to = "Saturn"
 
     # Ensure the directory exists
     if not os.path.exists(extract_to):
