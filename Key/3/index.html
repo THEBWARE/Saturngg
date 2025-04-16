@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saturn.gg - Get Key</title>
+    <title>Saturn.gg - Key Generator</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -46,7 +46,7 @@
             margin: 20px 0;
             font-family: monospace;
         }
-        .copied {
+        .status {
             color: #4CAF50;
             display: none;
         }
@@ -58,27 +58,27 @@
         <p>Click below to generate your unique key</p>
         <button id="generateKey">Generate Key</button>
         <div id="keyDisplay" style="display: none;"></div>
-        <p id="copiedMessage" class="copied">Key copied to clipboard!</p>
-        <p id="sentMessage" class="copied">Key sent to executor!</p>
+        <p id="copiedStatus" class="status">Key copied to clipboard!</p>
+        <p id="sentStatus" class="status">Key sent to executor!</p>
     </div>
 
     <script>
-        document.getElementById('generateKey').addEventListener('click', function() {
+        document.getElementById('generateKey').addEventListener('click', async function() {
             const key = 'SATURN-' + generateRandomString(16);
             const keyDisplay = document.getElementById('keyDisplay');
             keyDisplay.textContent = key;
             keyDisplay.style.display = 'block';
             
             // Copy to clipboard
-            navigator.clipboard.writeText(key).then(() => {
-                document.getElementById('copiedMessage').style.display = 'block';
-                setTimeout(() => {
-                    document.getElementById('copiedMessage').style.display = 'none';
-                }, 2000);
-            });
+            try {
+                await navigator.clipboard.writeText(key);
+                showStatus('copiedStatus');
+            } catch (err) {
+                console.error('Failed to copy:', err);
+            }
             
             // Send to executor
-            sendKeyToExecutor(key);
+            await sendKeyToExecutor(key);
         });
 
         function generateRandomString(length) {
@@ -90,25 +90,32 @@
             return result;
         }
 
-        function sendKeyToExecutor(key) {
+        async function sendKeyToExecutor(key) {
             try {
-                const socket = new WebSocket('ws://localhost:2929');
+                const response = await fetch('http://localhost:2929', {
+                    method: 'POST',
+                    body: key,
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    }
+                });
                 
-                socket.onopen = function() {
-                    socket.send(key);
-                    document.getElementById('sentMessage').style.display = 'block';
-                    setTimeout(() => {
-                        document.getElementById('sentMessage').style.display = 'none';
-                    }, 2000);
-                    socket.close();
-                };
-                
-                socket.onerror = function() {
-                    console.log('Failed to connect to executor. Make sure it is running.');
-                };
-            } catch (e) {
-                console.log('WebSocket not supported or connection failed');
+                if (response.ok) {
+                    showStatus('sentStatus');
+                } else {
+                    console.error('Failed to send key');
+                }
+            } catch (error) {
+                console.error('Error sending key:', error);
             }
+        }
+
+        function showStatus(id) {
+            const element = document.getElementById(id);
+            element.style.display = 'block';
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 2000);
         }
     </script>
 </body>
