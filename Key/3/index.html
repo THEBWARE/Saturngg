@@ -1,122 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saturn.gg - Key Generator</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #0f0f0f;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: #1a1a1a;
-            padding: 30px;
-            border-radius: 10px;
-            text-align: center;
-            width: 400px;
-        }
-        h1 {
-            color: #4CAF50;
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 20px 0;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #keyDisplay {
-            background-color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            word-break: break-all;
-            margin: 20px 0;
-            font-family: monospace;
-        }
-        .status {
-            color: #4CAF50;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saturn.gg - Key Generator</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #0f0f0f;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background-color: #1a1a1a;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      width: 400px;
+    }
+    h1 {
+      color: #4CAF50;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 20px 0;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .status {
+      color: #4CAF50;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Saturn.gg Key Generator</h1>
-        <p>Click below to generate your unique key</p>
-        <button id="generateKey">Generate Key</button>
-        <div id="keyDisplay" style="display: none;"></div>
-        <p id="copiedStatus" class="status">Key copied to clipboard!</p>
-        <p id="sentStatus" class="status">Key sent to executor!</p>
-    </div>
+  <div class="container">
+    <h1>Saturn.gg Key Generator</h1>
+    <p>Click below to generate your unique key</p>
+    <button id="generateKey">Generate Key</button>
+    <p id="copiedStatus" class="status">Key copied to clipboard!</p>
+    <p id="sentStatus" class="status">Key sent to executor!</p>
+  </div>
 
-    <script>
-        document.getElementById('generateKey').addEventListener('click', async function() {
-            const key = 'SATURN-' + generateRandomString(16);
-            const keyDisplay = document.getElementById('keyDisplay');
-            keyDisplay.textContent = key;
-            keyDisplay.style.display = 'block';
-            
-            // Copy to clipboard
-            try {
-                await navigator.clipboard.writeText(key);
-                showStatus('copiedStatus');
-            } catch (err) {
-                console.error('Failed to copy:', err);
-            }
-            
-            // Send to executor
-            await sendKeyToExecutor(key);
+  <script>
+    document.getElementById('generateKey').addEventListener('click', async function () {
+      const key = 'SATURN-' + generateRandomString(16);
+
+      // Copy to clipboard
+      try {
+        await navigator.clipboard.writeText(key);
+        showStatus('copiedStatus');
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+
+      // Send to executor
+      await sendKeyToExecutor(key);
+    });
+
+    function generateRandomString(length) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    async function sendKeyToExecutor(key) {
+      try {
+        const response = await fetch('http://localhost:2929', {
+          method: 'POST',
+          body: key,
+          headers: {
+            'Content-Type': 'text/plain'
+          }
         });
 
-        function generateRandomString(length) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let result = '';
-            for (let i = 0; i < length; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
+        if (response.ok) {
+          showStatus('sentStatus');
+        } else {
+          console.error('Failed to send key');
         }
+      } catch (error) {
+        console.error('Error sending key:', error);
+      }
+    }
 
-        async function sendKeyToExecutor(key) {
-            try {
-                const response = await fetch('http://localhost:2929', {
-                    method: 'POST',
-                    body: key,
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    }
-                });
-                
-                if (response.ok) {
-                    showStatus('sentStatus');
-                } else {
-                    console.error('Failed to send key');
-                }
-            } catch (error) {
-                console.error('Error sending key:', error);
-            }
-        }
-
-        function showStatus(id) {
-            const element = document.getElementById(id);
-            element.style.display = 'block';
-            setTimeout(() => {
-                element.style.display = 'none';
-            }, 2000);
-        }
-    </script>
+    function showStatus(id) {
+      const element = document.getElementById(id);
+      element.style.display = 'block';
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 2000);
+    }
+  </script>
 </body>
 </html>
