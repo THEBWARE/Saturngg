@@ -1,1 +1,115 @@
-soon!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saturn.gg - Get Key</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0f0f0f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1a1a1a;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            width: 400px;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 20px 0;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #keyDisplay {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .copied {
+            color: #4CAF50;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Saturn.gg Key Generator</h1>
+        <p>Click below to generate your unique key</p>
+        <button id="generateKey">Generate Key</button>
+        <div id="keyDisplay" style="display: none;"></div>
+        <p id="copiedMessage" class="copied">Key copied to clipboard!</p>
+        <p id="sentMessage" class="copied">Key sent to executor!</p>
+    </div>
+
+    <script>
+        document.getElementById('generateKey').addEventListener('click', function() {
+            const key = 'SATURN-' + generateRandomString(16);
+            const keyDisplay = document.getElementById('keyDisplay');
+            keyDisplay.textContent = key;
+            keyDisplay.style.display = 'block';
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(key).then(() => {
+                document.getElementById('copiedMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copiedMessage').style.display = 'none';
+                }, 2000);
+            });
+            
+            // Send to executor
+            sendKeyToExecutor(key);
+        });
+
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function sendKeyToExecutor(key) {
+            try {
+                const socket = new WebSocket('ws://localhost:2929');
+                
+                socket.onopen = function() {
+                    socket.send(key);
+                    document.getElementById('sentMessage').style.display = 'block';
+                    setTimeout(() => {
+                        document.getElementById('sentMessage').style.display = 'none';
+                    }, 2000);
+                    socket.close();
+                };
+                
+                socket.onerror = function() {
+                    console.log('Failed to connect to executor. Make sure it is running.');
+                };
+            } catch (e) {
+                console.log('WebSocket not supported or connection failed');
+            }
+        }
+    </script>
+</body>
+</html>
