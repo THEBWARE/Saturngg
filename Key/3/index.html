@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Saturn.gg - Key Generator</title>
+  <title>Saturn.gg - Authenticator</title>
   <style>
     body {
       font-family: 'Arial', sans-serif;
@@ -44,10 +44,8 @@
 <body>
   <div class="container">
     <h1>Saturn.gg Key Generator</h1>
-    <p>Click below to generate your unique key</p>
-    <button id="generateKey">Generate Key</button>
-    <p id="copiedStatus" class="status">Key copied to clipboard!</p>
-    <p id="sentStatus" class="status">Key sent to executor!</p>
+    <p>Click below to Unlock the executor</p>
+    <button id="generateKey">Unlock</button>
   </div>
 
   <script>
@@ -55,12 +53,6 @@
       const key = 'SATURN-' + generateRandomString(16);
 
       // Copy to clipboard
-      try {
-        await navigator.clipboard.writeText(key);
-        showStatus('copiedStatus');
-      } catch (err) {
-        console.error('Failed to copy:', err);
-      }
 
       // Send to executor
       await sendKeyToExecutor(key);
