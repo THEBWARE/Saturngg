@@ -1,1 +1,264 @@
-we are currently having some technical difficulties please try again leter.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Saturn.gg - Authenticator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00ff88;
+      --primary-dark: #00cc6a;
+      --background: #121212;
+      --surface: #1e1e1e;
+      --border: #333333;
+      --text-primary: #ffffff;
+      --text-secondary: #b3b3b3;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .container {
+      background-color: var(--surface);
+      padding: 40px;
+      border-radius: 16px;
+      text-align: center;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--primary), #0099ff);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    h1 {
+      color: var(--primary);
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    
+    button {
+      background-color: var(--primary);
+      color: #121212;
+      border: none;
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      margin: 20px 0;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    button:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .status {
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 16px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 24px 0;
+      opacity: 0.5;
+    }
+    
+    .features {
+      text-align: left;
+      margin-top: 24px;
+    }
+    
+    .feature {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .feature-icon {
+      color: var(--primary);
+      margin-right: 12px;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .ripple-effect {
+      position: absolute;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.7);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      pointer-events: none;
+    }
+    
+    @keyframes ripple {
+      to {
+        transform: scale(2.5);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">S</div>
+    <h1>Saturn.gg Executor</h1>
+    <p>Click below to authenticate and unlock the executor</p>
+    
+    <button id="generateKey" class="ripple">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 15V3M12 15L8 11M12 15L16 11M21 12H19.5C18.3954 12 17.5 12.8954 17.5 14V21" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 12H4.5C5.60457 12 6.5 12.8954 6.5 14V21" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Unlock Executor
+    </button>
+    
+    <div id="sentStatus" class="status">Authentication successful!</div>
+    
+    <div class="divider"></div>
+    
+    <div class="features">
+      <div class="feature">
+        <span class="feature-icon">✓</span>
+        <span>Secure authentication</span>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">✓</span>
+        <span>Direct server communication</span>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">✓</span>
+        <span>Instant access</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('generateKey').addEventListener('click', function(e) {
+      // Create ripple effect
+      const button = e.currentTarget;
+      const ripple = document.createElement('span');
+      ripple.classList.add('ripple-effect');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${x}px`;
+      ripple.style.top = `${y}px`;
+      button.appendChild(ripple);
+      
+      // Remove ripple after animation
+      setTimeout(() => {
+        ripple.remove();
+      }, 600);
+      
+      // Generate and send key
+      generateAndSendKey();
+    });
+
+    async function generateAndSendKey() {
+      const key = 'SATURN-' + generateRandomString(16);
+      await sendKeyToExecutor(key);
+    }
+
+    function generateRandomString(length) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    async function sendKeyToExecutor(key) {
+      try {
+        const response = await fetch('http://localhost:2929', {
+          method: 'POST',
+          body: key,
+          headers: {
+            'Content-Type': 'text/plain'
+          }
+        });
+
+        if (response.ok) {
+          showStatus('sentStatus');
+        } else {
+          console.error('Failed to send key');
+        }
+      } catch (error) {
+        console.error('Error sending key:', error);
+      }
+    }
+
+    function showStatus(id) {
+      const element = document.getElementById(id);
+      element.style.display = 'block';
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
