@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Display</title>
+    <style>
+        pre {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Roblox Version Information</h1>
+    <pre id="jsonData"></pre>
+
+    <script>
+        const jsonData = {
+            "version": "1e91b4133e334c9c",
+            "releaseDate": "2025-04-18",
+            "platforms": [
+                "Windows"
+            ],
+            "downloadLink": "https://www.roblox.com/download"
+        };
+
+        // Display the JSON data in the HTML page
+        document.getElementById("jsonData").textContent = JSON.stringify(jsonData, null, 2);
+    </script>
+</body>
+</html>
