@@ -1,36 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display Windows.json</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roblox Version Info</title>
 </head>
 <body>
-    <h1>Windows.json Content</h1>
-    <input type="file" id="fileInput" />
-    <pre id="jsonDisplay"></pre>
-
-    <script>
-        document.getElementById("fileInput").addEventListener("change", function(event) {
-            const file = event.target.files[0];
-            if (file && file.name === "Windows.json") {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const content = e.target.result;
-                    try {
-                        const jsonObject = JSON.parse(content);
-                        document.getElementById("jsonDisplay").textContent = JSON.stringify(jsonObject, null, 2);
-                    } catch (error) {
-                        document.getElementById("jsonDisplay").textContent = "Invalid JSON format.";
-                    }
-                };
-                
-                reader.readAsText(file);
-            } else {
-                alert("Please upload a file named 'Windows.json'");
-            }
-        });
-    </script>
+  <h1>Windows</h1>
+  <iframe src="https://saturn-gg.vercel.app/API/Roblox/Version/Platform/Windows/Windows.json" width="100%" height="600px"></iframe>
 </body>
 </html>
