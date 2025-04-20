@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Display</title>
-    <style>
-        pre {
-            background-color: #f4f4f4;
-            padding: 20px;
-            border-radius: 5px;
-            font-family: monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style>
+    <title>Display Windows.json</title>
 </head>
 <body>
-    <h1>Roblox Version Information</h1>
-    <pre id="jsonData"></pre>
+    <h1>Windows.json Content</h1>
+    <input type="file" id="fileInput" />
+    <pre id="jsonDisplay"></pre>
 
     <script>
-        const jsonData = {
-            "version": "1e91b4133e334c9c",
-            "releaseDate": "2025-04-18",
-            "platforms": [
-                "Windows"
-            ],
-            "downloadLink": "https://www.roblox.com/download"
-        };
-
-        // Display the JSON data in the HTML page
-        document.getElementById("jsonData").textContent = JSON.stringify(jsonData, null, 2);
+        document.getElementById("fileInput").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            if (file && file.name === "Windows.json") {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    try {
+                        const jsonObject = JSON.parse(content);
+                        document.getElementById("jsonDisplay").textContent = JSON.stringify(jsonObject, null, 2);
+                    } catch (error) {
+                        document.getElementById("jsonDisplay").textContent = "Invalid JSON format.";
+                    }
+                };
+                
+                reader.readAsText(file);
+            } else {
+                alert("Please upload a file named 'Windows.json'");
+            }
+        });
     </script>
 </body>
 </html>
