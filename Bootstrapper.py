@@ -1,11 +1,10 @@
 import requests
 import os
 import zipfile
+import time
 
 def display_ascii_art():
-    # ANSI escape code for blue text
     blue_color = "\033[94m"
-    # ANSI escape code to reset text color to default
     reset_color = "\033[0m"
 
     ascii_art = """
@@ -40,7 +39,6 @@ def main():
     zip_filename = "Saturn.gg-V1.1.25.zip"
     extract_to = "Saturn.gg-V1.1.25"
 
-    # Ensure the directory exists
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
 
@@ -48,6 +46,7 @@ def main():
     unzip_file(zip_filename, extract_to)
 
     print("All steps completed successfully.")
+    time.sleep(5)
 
 if __name__ == "__main__":
     main()
