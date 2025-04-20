@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Latest Roblox Version</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0f0f0f;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      text-align: center;
+      background-color: #1a1a1a;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px #00ffe0;
+    }
+    .version {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00ffe0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Latest Roblox Version</h1>
+    <p class="version" id="roblox-version">Loading...</p>
+  </div>
+
+  <script>
+    // Simulate fetching from a JSON file or API
+    const versionData = {
+      "platform": "Windows",
+      "latestVersion": "version-1e91b4133e334c9c",
+      "lastUpdated": "2025-04-20"
+    };
+
+    document.getElementById("roblox-version").textContent = versionData.latestVersion;
+  </script>
+</body>
+</html>
