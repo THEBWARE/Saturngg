@@ -31,9 +31,28 @@
     .version {
       margin-bottom: 30px;
     }
+    #search-container {
+      margin-bottom: 20px;
+    }
+    #search {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background: #2d2d2d;
+      color: #f1f1f1;
+      font-size: 16px;
+    }
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
+
+  <div id="search-container">
+    <input type="text" id="search" placeholder="Search changelog...">
+  </div>
 
   <h1>Saturn.gg Changelog</h1>
 
@@ -55,7 +74,7 @@
       <li class="removed">Slower injection speed (kinda noticeable)</li>
       <li>Website domain coming soon (fr this time lol>>>)</li>
       <li class="removed">Have to disable anti-virus (yes still :/)</li>
-      <li class="removed">Asks for admin prompt (Because of built-in spoofer, so y’all don't get banned)</li>
+      <li class="removed">Asks for admin prompt (Because of built-in spoofer, so y'all don't get banned)</li>
       <li class="removed">ScriptHub delayed by one more update</li>
       <li>Way more sUNC and uNC!! (100 & 100)</li>
       <li>Stopped faking identity!</li>
@@ -87,7 +106,7 @@
       <li>Added an authenticator every time you open Saturn.gg (May be annoying lol)</li>
       <li class="removed">May ask for admin prompt</li>
       <li class="removed">Might have to turn off anti-virus</li>
-      <li>We’re out of beta!!</li>
+      <li>We're out of beta!!</li>
       <li>Smoother injection time</li>
       <li class="removed">Execute may be a little slower</li>
       <li class="removed">Console not fixed yet (will next update)</li>
@@ -177,7 +196,7 @@
     <ul>
       <li>Added Terminal (Still in beta)</li>
       <li>Better API (Not fake UNC or SUNC)</li>
-      <li>Doesn’t take that much CPU usage anymore</li>
+      <li>Doesn't take that much CPU usage anymore</li>
       <li>Fixed all bugs</li>
       <li>Fixed lagging on inject</li>
       <li>Added custom inject notification</li>
@@ -190,5 +209,20 @@
     </ul>
   </div>
 
+  <script>
+    document.getElementById('search').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const versions = document.querySelectorAll('.version');
+      
+      versions.forEach(version => {
+        const textContent = version.textContent.toLowerCase();
+        if (textContent.includes(searchTerm)) {
+          version.classList.remove('hidden');
+        } else {
+          version.classList.add('hidden');
+        }
+      });
+    });
+  </script>
 </body>
 </html>
