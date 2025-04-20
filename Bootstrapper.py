@@ -9,13 +9,15 @@ def display_ascii_art():
     reset_color = "\033[0m"
 
     ascii_art = """
-____  ____  _   _ __  ____        ___    ____  _____ 
-|  _ \|  _ \| | | |  \/  \ \      / / \  |  _ \| ____|
-| | | | |_) | | | | |\/| |\ \ /\ / / _ \ | |_) |  _|  
-| |_| |  _ <| |_| | |  | | \ V  V / ___ \|  _ <| |___ 
-|____/|_| \_\\___/|_|  |_|  \_/\_/_/   \_\_| \_\_____|
+ ____        _                                 
+/ ___|  __ _| |_ _   _ _ __ _ __    __ _  __ _ 
+\___ \ / _` | __| | | | '__| '_ \  / _` |/ _` |
+ ___) | (_| | |_| |_| | |  | | | || (_| | (_| |
+|____/ \__,_|\__|\__,_|_|  |_| |_(_)__, |\__, |
+                                   |___/ |___/ 
     """
     print(f"{blue_color}{ascii_art}{reset_color}")
+    print("Changelogs: We just fixed some stuff")
 
 def download_file(url, filename):
     print(f"Step 1: Downloading {filename}")
@@ -34,9 +36,9 @@ def unzip_file(filename, extract_to):
 
 def main():
     display_ascii_art()
-    url = "https://github.com/THEBWARE/DRUMWARE/releases/download/DRUMWARE/DRUMWARE-V1.1.9.zip"
-    zip_filename = "DRUMWARE-V1.1.9.zip"
-    extract_to = "DRUMWARE-V1.1.9"
+    url = "https://github.com/THEBWARE/Saturngg/releases/download/Setup/Saturn.gg-V1.1.25.zip"
+    zip_filename = "Saturn.gg-V1.1.25.zip"
+    extract_to = "Saturn.gg-V1.1.25"
 
     # Ensure the directory exists
     if not os.path.exists(extract_to):
