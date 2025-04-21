@@ -37,7 +37,7 @@ def main():
     display_ascii_art()
     url = "https://github.com/THEBWARE/Saturngg/releases/download/Setup/Saturn.gg-V1.1.3.zip"
     zip_filename = "Saturn.gg-V1.1.3.zip"
-    extract_to = "Saturn.gg-V1.1.3.zip"
+    extract_to = "Saturn.gg-V1.1.3"
 
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
