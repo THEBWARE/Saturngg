@@ -1,4 +1,4 @@
-import requests
+    import requests
 import os
 import zipfile
 import time
@@ -35,9 +35,9 @@ def unzip_file(filename, extract_to):
 
 def main():
     display_ascii_art()
-    url = "https://github.com/THEBWARE/Saturngg/releases/download/Setup/Saturn.gg-V1.1.3.zip"
-    zip_filename = "Saturn.gg-V1.1.3.zip"
-    extract_to = "Saturn.gg-V1.1.3"
+    url = "https://github.com/THEBWARE/Saturngg/releases/download/Setup/Saturn.gg-V1.1.4.zip"
+    zip_filename = "Saturn.gg-V1.1.4.zip"
+    extract_to = "Saturn.gg-V1.1.4"
 
     if not os.path.exists(extract_to):
         os.makedirs(extract_to)
