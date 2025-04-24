@@ -1,6 +1,7 @@
 import os
 import zipfile
 import requests
+import shutil
 
 SATURN_GG_VERSION = "Saturn.gg-V1.1.4"
 SATURN_GG_ZIP_URL = "https://github.com/THEBWARE/Saturngg/releases/download/Setup/Saturn.gg-V1.1.4.zip"
@@ -31,6 +32,7 @@ def download_and_extract():
 
 def main():
     if not os.path.exists(ROAMING_PATH):
+        print("Updating executor")
         download_and_extract()
     else:
         for root, dirs, files in os.walk(ROAMING_PATH):
@@ -39,6 +41,7 @@ def main():
                 break
         else:
             shutil.rmtree(ROAMING_PATH)
+            print("Updating executor")
             download_and_extract()
 
 if __name__ == "__main__":
