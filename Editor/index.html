@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .editor-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tabs-container {
+            background-color: #0f0f0f;
+            display: flex;
+            height: 35px;
+            overflow-x: auto;
+            border-bottom: 1px solid #333;
+            gap: 0;
+        }
+        .tab {
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            background-color: #0f0f0f;
+            color: #969696;
+            border-right: 1px solid #1F1F1F;
+            min-width: 120px;
+            max-width: 200px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .tab.active {
+            background-color: #0C0C0C;
+            color: #ffffff;
+        }
+        .tab-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            top: 2px;
+        }
+        .tab-icon img {
+            width: 16px;
+            height: 16px;
+        }
+        .tab-title {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 11px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .tab-title.editing {
+            background: #3d3d3d;
+            border: 1px solid #525252;
+            padding: 2px 4px;
+            border-radius: 3px;
+            outline: none;
+        }
+        .tab-close {
+            margin-left: 8px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        .tab-close:hover {
+            opacity: 1;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .tab.new-tab {
+            min-width: 10px;
+            max-width: 10px;
+            justify-content: center;
+            background-color: transparent;
+            border: none;
+            margin-left: -2px;
+        }
+        .tab.new-tab:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        @keyframes tabAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes tabRemove {
+            to {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+        }
+        .tab.new {
+            animation: tabAppear 0.2s ease-out;
+        }
+        .tab.removing {
+            animation: tabRemove 0.2s ease-out;
+        }
+        
+        /* Context Menu */
+        .context-menu {
+            position: absolute;
+            background-color: #252526;
+            border: 1px solid #454545;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+        .context-menu-item {
+            padding: 5px 15px;
+            color: #e0e0e0;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .context-menu-item:hover {
+            background-color: #094771;
+        }
+        .context-menu-separator {
+            height: 1px;
+            background-color: #454545;
+            margin: 3px 0;
+        }
+    </style>
+    <script src="https://unpkg.com/monaco-editor@0.33.0/min/vs/loader.js"></script>
+    <script>
+        require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.33.0/min/vs' }});
+    </script>
+</head>
+<body>
+    <div class="editor-container">
+        <div id="tabs-container" class="tabs-container"></div>
+        <div id="container" style="width:100%;height:calc(100% - 35px);"></div>
+        
+        <!-- Context Menu -->
+        <div id="contextMenu" class="context-menu">
+            <div class="context-menu-item" id="ctxNewTab">New Tab</div>
+            <div class="context-menu-item" id="ctxCloseTab">Close Tab</div>
+            <div class="context-menu-item" id="ctxCloseOtherTabs">Close Other Tabs</div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" id="ctxRenameTab">Rename Tab</div>
+            <div class="context-menu-separator"></div>
+            <div class="context-menu-item" id="ctxCopyContent">Copy Content</div>
+            <div class="context-menu-item" id="ctxPasteContent">Paste Content</div>
+        </div>
+    </div>
+
+    <script>
+        let editor;
+        let Proposals = [];
+        let currentTab = null;
+        let tabs = [];
+        let contextMenuTabId = null;
+
+        const luaIcon = `<img src="https://icons.veryicon.com/png/o/file-type/file-type-icon-library/lua.png" alt="Lua Icon" style="width: 20px; height: 20px;" />`;
+
+        class Tab {
+            constructor(title, content = '') {
+                this.id = 'tab-' + Math.random().toString(36).substr(2, 9);
+                this.title = title;
+                this.content = content;
+                this.element = null;
+            }
+        }
+
+        function saveTabs() {
+            const tabsData = tabs.map(tab => ({
+                id: tab.id,
+                title: tab.title,
+                content: tab.content
+            }));
+            localStorage.setItem('editorTabs', JSON.stringify(tabsData));
+        }
+
+        function loadTabs() {
+            const savedTabs = localStorage.getItem('editorTabs');
+            if (savedTabs) {
+                const tabsData = JSON.parse(savedTabs);
+                tabsData.forEach(tabData => {
+                    addTab(tabData.title, tabData.content, tabData.id);
+                });
+            } else {
+                addTab('New Tab 1', '');
+            }
+        }
+
+        function makeEditable(titleElement, tab) {
+            titleElement.contentEditable = true;
+            titleElement.classList.add('editing');
+            titleElement.focus();
+
+            const range = document.createRange();
+            range.selectNodeContents(titleElement);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            function finishEditing() {
+                titleElement.contentEditable = false;
+                titleElement.classList.remove('editing');
+                const newTitle = titleElement.textContent.trim();
+                if (newTitle) {
+                    tab.title = newTitle;
+                    saveTabs();
+                } else {
+                    titleElement.textContent = tab.title;
+                }
+            }
+
+            titleElement.onblur = finishEditing;
+            titleElement.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    finishEditing();
+                }
+                if (e.key === 'Escape') {
+                    titleElement.textContent = tab.title;
+                    finishEditing();
+                }
+            };
+        }
+
+        function createTabElement(tab) {
+            const tabElement = document.createElement('div');
+            tabElement.className = 'tab new';
+            tabElement.setAttribute('data-tab-id', tab.id);
+
+            const iconElement = document.createElement('div');
+            iconElement.className = 'tab-icon';
+            iconElement.innerHTML = luaIcon;
+
+            const titleElement = document.createElement('div');
+            titleElement.className = 'tab-title';
+            titleElement.textContent = tab.title;
+
+            titleElement.ondblclick = (e) => {
+                e.stopPropagation();
+                makeEditable(titleElement, tab);
+            };
+
+            const closeButton = document.createElement('div');
+            closeButton.className = 'tab-close';
+            closeButton.innerHTML = '✕';
+            closeButton.onclick = (e) => {
+                e.stopPropagation();
+                if (tabs.length > 1) {
+                    removeTab(tab.id);
+                }
+            };
+
+            tabElement.oncontextmenu = (e) => {
+                e.preventDefault();
+                showContextMenu(e, tab.id);
+            };
+
+            tabElement.appendChild(iconElement);
+            tabElement.appendChild(titleElement);
+            tabElement.appendChild(closeButton);
+
+            tabElement.onclick = () => switchTab(tab.id);
+
+            return tabElement;
+        }
+
+        function createNewTabButton() {
+            const newTabButton = document.createElement('div');
+            newTabButton.className = 'tab new-tab';
+            newTabButton.innerHTML = '+';
+            newTabButton.onclick = () => {
+                const newTab = addTab('New Tab', '');
+                // Automatically make the title editable for new tabs
+                const titleElement = newTab.element.querySelector('.tab-title');
+                makeEditable(titleElement, newTab);
+            };
+            return newTabButton;
+        }
+
+        function addTab(title, content = '', id = null) {
+            const tab = new Tab(title, content);
+            if (id) tab.id = id;
+            tabs.push(tab);
+
+            const tabsContainer = document.getElementById('tabs-container');
+            const newTabButton = tabsContainer.querySelector('.new-tab');
+
+            tab.element = createTabElement(tab);
+            if (newTabButton) {
+                tabsContainer.insertBefore(tab.element, newTabButton);
+            } else {
+                tabsContainer.appendChild(tab.element);
+                tabsContainer.appendChild(createNewTabButton());
+            }
+
+            switchTab(tab.id);
+            saveTabs();
+            return tab;
+        }
+
+        function removeTab(tabId) {
+            const tabIndex = tabs.findIndex(t => t.id === tabId);
+            if (tabIndex === -1) return;
+
+            if (tabs.length <= 1) return;
+
+            const tab = tabs[tabIndex];
+            tab.element.classList.add('removing');
+
+            setTimeout(() => {
+                tabs.splice(tabIndex, 1);
+                tab.element.remove();
+
+                if (currentTab === tabId) {
+                    switchTab(tabs[Math.min(tabIndex, tabs.length - 1)].id);
+                }
+                saveTabs();
+            }, 200);
+        }
+
+        function switchTab(tabId) {
+            const tab = tabs.find(t => t.id === tabId);
+            if (!tab) return;
+
+            tabs.forEach(t => {
+                if (t.element) {
+                    t.element.classList.remove('active');
+                }
+            });
+
+            if (currentTab !== tabId) {
+                if (currentTab) {
+                    const oldTab = tabs.find(t => t.id === currentTab);
+                    if (oldTab) {
+                        oldTab.content = editor.getValue();
+                        saveTabs();
+                    }
+                }
+
+                editor.setValue(tab.content);
+                tab.element.classList.add('active');
+                currentTab = tabId;
+            }
+        }
+
+        function setupAutosave() {
+            let saveTimeout;
+            editor.onDidChangeModelContent(() => {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    if (currentTab) {
+                        const tab = tabs.find(t => t.id === currentTab);
+                        if (tab) {
+                            tab.content = editor.getValue();
+                            saveTabs();
+                        }
+                    }
+                }, 500);
+            });
+        }
+
+        // Context Menu Functions
+        function showContextMenu(e, tabId) {
+            const contextMenu = document.getElementById('contextMenu');
+            contextMenuTabId = tabId;
+            
+            // Position the menu
+            contextMenu.style.display = 'block';
+            contextMenu.style.left = `${e.pageX}px`;
+            contextMenu.style.top = `${e.pageY}px`;
+            
+            // Disable "Close Tab" if only one tab exists
+            document.getElementById('ctxCloseTab').style.opacity = tabs.length > 1 ? '1' : '0.5';
+            document.getElementById('ctxCloseTab').style.pointerEvents = tabs.length > 1 ? 'auto' : 'none';
+            
+            // Disable "Close Other Tabs" if only one tab exists
+            document.getElementById('ctxCloseOtherTabs').style.opacity = tabs.length > 1 ? '1' : '0.5';
+            document.getElementById('ctxCloseOtherTabs').style.pointerEvents = tabs.length > 1 ? 'auto' : 'none';
+            
+            return false;
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenu').style.display = 'none';
+        }
+
+        function setupContextMenu() {
+            // Hide menu when clicking elsewhere
+            document.addEventListener('click', hideContextMenu);
+            
+            // Context menu actions
+            document.getElementById('ctxNewTab').addEventListener('click', () => {
+                const newTab = addTab('New Tab', '');
+                hideContextMenu();
+            });
+            
+            document.getElementById('ctxCloseTab').addEventListener('click', () => {
+                if (tabs.length > 1 && contextMenuTabId) {
+                    removeTab(contextMenuTabId);
+                }
+                hideContextMenu();
+            });
+            
+            document.getElementById('ctxCloseOtherTabs').addEventListener('click', () => {
+                if (tabs.length > 1 && contextMenuTabId) {
+                    tabs.forEach(tab => {
+                        if (tab.id !== contextMenuTabId) {
+                            removeTab(tab.id);
+                        }
+                    });
+                }
+                hideContextMenu();
+            });
+            
+            document.getElementById('ctxRenameTab').addEventListener('click', () => {
+                if (contextMenuTabId) {
+                    const tab = tabs.find(t => t.id === contextMenuTabId);
+                    if (tab) {
+                        const titleElement = tab.element.querySelector('.tab-title');
+                        makeEditable(titleElement, tab);
+                    }
+                }
+                hideContextMenu();
+            });
+            
+            document.getElementById('ctxCopyContent').addEventListener('click', () => {
+                if (contextMenuTabId) {
+                    const tab = tabs.find(t => t.id === contextMenuTabId);
+                    if (tab) {
+                        navigator.clipboard.writeText(tab.content);
+                    }
+                }
+                hideContextMenu();
+            });
+            
+            document.getElementById('ctxPasteContent').addEventListener('click', async () => {
+                if (contextMenuTabId) {
+                    const tab = tabs.find(t => t.id === contextMenuTabId);
+                    if (tab) {
+                        try {
+                            const text = await navigator.clipboard.readText();
+                            tab.content = text;
+                            if (currentTab === tab.id) {
+                                editor.setValue(text);
+                            }
+                            saveTabs();
+                        } catch (err) {
+                            console.error('Failed to read clipboard:', err);
+                        }
+                    }
+                }
+                hideContextMenu();
+            });
+        }
+
+        require(['vs/editor/editor.main'], function () {
+            function getDependencyProposals() {
+                return Proposals;
+            }
+
+            monaco.languages.registerCompletionItemProvider('lua', {
+                provideCompletionItems: function (model, position) {
+                    const word = model.getWordUntilPosition(position);
+                    const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn,
+                    };
+
+                    const filteredProposals = Proposals.filter(proposal =>
+                        proposal.label.toLowerCase().startsWith(word.word.toLowerCase())
+                    );
+
+                    return {
+                        suggestions: filteredProposals.map(proposal => ({
+                            label: proposal.label,
+                            kind: proposal.kind,
+                            detail: proposal.detail,
+                            insertText: proposal.insertText,
+                            range: range,
+                        })),
+                    };
+                },
+                triggerCharacters: [],
+            });
+
+            monaco.editor.defineTheme('net-theme-dark', {
+                base: 'vs-dark',
+                inherit: true,
+                colors: {
+                    "editor.background": '#111111',
+                },
+                rules: [
+                    { token: 'global', foreground: 'fb9767', fontStyle: "bold" },
+                    { token: 'keyword', foreground: 'fb9767', fontStyle: "bold" },
+                    { token: 'comment', foreground: 'fed767', fontStyle: "bold" },
+                    { token: 'number', foreground: 'a0d26e', fontStyle: "bold" },
+                    { token: 'string', foreground: '77dbe7', fontStyle: "bold" },
+                    { token: 'Method', foreground: 'ff6699' },
+                    { token: 'operator', foreground: 'ff5555' },
+                    { token: 'type', foreground: 'ffdd66' },
+                    { token: 'variable', foreground: 'aaffff' },
+                    { token: 'variable.predefined', foreground: 'aaffff', fontStyle: "italic" },
+                    { token: 'constant', foreground: 'd48aff' },
+                    { token: 'class', foreground: 'ff3333', fontStyle: "bold" },
+                    { token: 'interface', foreground: 'ffcc66', fontStyle: "italic" },
+                    { token: 'function', foreground: 'b266ff', fontStyle: "bold" },
+                    { token: 'label', foreground: '66ff66', fontStyle: "italic" },
+                    { token: 'predefined.type', foreground: 'ffaa33' },
+                    { token: 'punctuation.bracket', foreground: 'ff33cc' },
+                    { token: 'print', foreground: '00ff00', fontStyle: "bold" },
+                    { token: 'if', foreground: 'ff6a00', fontStyle: "bold" }
+                ]
+            });
+
+            editor = monaco.editor.create(document.getElementById('container'), {
+                language: 'lua',
+                theme: "net-theme-dark",
+                acceptSuggestionOnEnter: "smart",
+                cursorSmoothCaretAnimation: true,
+                suggestOnTriggerCharacters: false,
+                suggestSelection: "recentlyUsed",
+                folding: true,
+                dragAndDrop: true,
+                links: true,
+                minimap: { enabled: false },
+                showFoldingControls: "always",
+                smoothScrolling: true,
+                stopRenderingLineAfter: 6500,
+                cursorBlinking: "smooth",
+                cursorSmoothCaretAnimation: true,
+                foldingHighlight: false,
+                fontLigatures: true,
+                formatOnPaste: true,
+                showDeprecated: true,
+                suggest: { snippetsPreventQuickSuggestions: false },
+                padding: { top: 24 }
+            });
+
+            editor.onMouseDown((e) => {
+                if (e.target.type === monaco.editor.MouseTargetType.CONTENT_TEXT && e.event.ctrlKey) {
+                    const link = e.target.element?.getAttribute('href');
+                    if (link) {
+                        window.open(link, '_blank');
+                    }
+                }
+            });
+
+            // Setup context menu
+            setupContextMenu();
+            
+            // Load tabs and setup auto-save
+            loadTabs();
+            setupAutosave();
+
+            window.onresize = function () {
+                editor.layout();
+            };
+
+            editor.onDidChangeModelContent(function (e) {
+                const model = editor.getModel();
+                const value = model.getValue();
+                const lines = value.split('\n');
+
+                const markers = [];
+                lines.forEach((line, lineNumber) => {
+                    if (line.includes('print') || line.includes('if')) {
+                        return;
+                    }
+                });
+
+                monaco.editor.setModelMarkers(model, 'luaparse', markers);
+            });
+
+            function AddIntellisense(l, k, d, i) {
+                var t;
+                switch (k) {
+                    case "Class": t = monaco.languages.CompletionItemKind.Class; break;
+                    case "Color": t = monaco.languages.CompletionItemKind.Color; break;
+                    case "Constructor": t = monaco.languages.CompletionItemKind.Constructor; break;
+                    case "Enum": t = monaco.languages.CompletionItemKind.Enum; break;
+                    case "Field": t = monaco.languages.CompletionItemKind.Field; break;
+                    case "File": t = monaco.languages.CompletionItemKind.File; break;
+                    case "Folder": t = monaco.languages.CompletionItemKind.Folder; break;
+                    case "Function": t = monaco.languages.CompletionItemKind.Function; break;
+                    case "Interface": t = monaco.languages.CompletionItemKind.Interface; break;
+                    case "Keyword": t = monaco.languages.CompletionItemKind.Keyword; break;
+                    case "Method": t = monaco.languages.CompletionItemKind.Method; break;
+                    case "Module": t = monaco.languages.CompletionItemKind.Module; break;
+                    case "Property": t = monaco.languages.CompletionItemKind.Property; break;
+                    case "Reference": t = monaco.languages.CompletionItemKind.Reference; break;
+                    case "Snippet": t = monaco.languages.CompletionItemKind.Snippet; break;
+                    case "Text": t = monaco.languages.CompletionItemKind.Text; break;
+                    case "Unit": t = monaco.languages.CompletionItemKind.Unit; break;
+                    case "Value": t = monaco.languages.CompletionItemKind.Value; break;
+                    case "Variable": t = monaco.languages.CompletionItemKind.Variable; break;
+                }
+
+                Proposals.push({
+                    label: l,
+                    kind: t,
+                    detail: d,
+                    insertText: i
+                });
+            }
+
+            async function load() {
+                for (const Key of ["_G", "_VERSION", "Enum", "game", "plugin", "shared", "script", "workspace", "DebuggerManager", "elapsedTime", "LoadLibrary", "PluginManager", "settings", "tick", "time", "typeof", "UserSettings"])
+                    AddIntellisense(Key, "Keyword", Key, Key);
+
+                for (const Key of ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"])
+                    AddIntellisense(Key, "Variable", Key, Key);
+
+                for (const Key of ["math.abs", "math.acos", "math.asin", "math.atan", "math.atan2", "math.ceil", "math.cos", "math.cosh", "math.deg", "math.exp", "math.floor", "math.fmod", "math.frexp", "math.huge", "math.ldexp", "math.log", "math.max", "math.min", "math.modf", "math.pi", "math.pow", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sinh", "math.sqrt", "math.tan", "math.tanh", "table.concat", "table.foreach", "table.foreachi", "table.sort", "table.insert", "table.remove", "Color3.new", "Instance.new", "BrickColor.new", "Vector3.new", "Vector2.new", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook", "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin", "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.rep", "string.reverse", "string.sub", "string.upper", "coroutine.create", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield"])
+                    AddIntellisense(Key, "Method", Key, Key);
+
+                for (const Key of ["Drawing", "debug", "Instance", "Color3", "Vector3", "Vector2", "BrickColor", "math", "table", "string", "coroutine", "Humanoid", "ClickDetector", "LocalScript", "Model", "ModuleScript", "Mouse", "Part", "Player", "Script", "Tool", "RunService", "UserInputService", "Workspace"])
+                    AddIntellisense(Key, "Class", Key, Key);
+
+                for (const Key of ["print", "warn", "wait", "info", "printidentity", "assert", "collectgarbage", "error", "getfenv", "getmetatable", "setmetatable", "ipairs", "loadfile", "loadstring", "newproxy", "next", "pairs", "pcall", "spawn", "rawequal", "rawget", "rawset", "select", "tonumber", "tostring", "type", "unpack", "xpcall", "delay", "stats", ":Remove()", ":BreakJoints()", ":GetChildren()", ":FindFirstChild()", ":FireServer()", ":InvokeServer()", ":ClearAllChildren()", ":Clone()", ":Destroy()", ":FindFirstAncestor()", ":FindFirstAncestorOfClass()", ":FindFirstAncestorWhichIsA()", ":FindFirstChildOfClass()", ":FindFirstChildWhichIsA()", ":GetDebugId()", ":GetDescendants()", ":GetFullName()", ":IsA()", ":GetPropertyChangedSignal()", ":IsAncestorOf()", ":IsDescendantOf()", ":WaitForChild()", ":Connect()", ":AncestryChanged()", ":Changed()", ":ChildAdded()", ":ChildRemoved()", ":DescendantAdded()", ":DescendantRemoving()", ":GetService()", ":GetObjects()", ":HttpGet()", ":Wait()"])
+                    AddIntellisense(Key, "Function", Key, Key.includes(":") ? Key.substring(1, Key.length) : Key);
+
+                for (const Key of ["Visible", "Color", "Transparency", "Thickness", "From", "To", "Text", "Size", "Center", "Outline", "OutlineColor", "Position", "TextBounds", "Font", "Data", "Rounding", "NumSides", "Radius", "Filled", "PointA", "PointB", "PointC", "PointD"])
+                    AddIntellisense(Key, "Property", "Property for Drawing Library", Key);
+            }
+            load();
+        });
+
+        // C#-style CreateTab function
+        window.CreateTab = function(title, content) {
+            return addTab(title || 'New Tab', content || '');
+        };
+
+        window.GetText = function () {
+            return editor.getValue();
+        };
+
+        window.SetText = function (text) {
+            editor.setValue(text);
+        };
+    </script>
+</body>
+</html>
